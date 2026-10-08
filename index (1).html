@@ -1,0 +1,121 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Susun Balok Komputer</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f3ea;--ink:#2b3440;--or:#e8782a;--bl:#3a6fb5;--ok:#2e9e5b;--no:#d64545}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Rubik,"Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(#3a6fb520 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,#3a6fb520 1px,transparent 1px) 0 0/24px 24px,var(--bg);display:flex;flex-direction:column;align-items:center;padding:10px;user-select:none;touch-action:manipulation}
+h1{margin:4px 0 2px;font-size:clamp(20px,4vw,30px)}h1 span{color:var(--or)}
+.sub{margin:0 0 10px;font-size:13px;opacity:.7}
+.game{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:flex-start;max-width:760px}
+.bw{position:relative;border:4px solid var(--ink);border-radius:8px;box-shadow:6px 6px 0 var(--or);background:#fffdf6;line-height:0}
+#b{width:min(300px,64vw);height:auto}
+#ov{position:absolute;inset:0;background:#2b3440ee;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;line-height:1.4;gap:8px}
+#ov h2{margin:0;font-size:26px;color:#ffb36b}#ov p{margin:0;font-size:14px}
+button{font:inherit;cursor:pointer}
+#go{background:var(--or);color:#fff;border:0;border-radius:8px;padding:10px 22px;font-weight:700;font-size:16px;box-shadow:0 4px 0 #a9500f}
+#go:active{transform:translateY(3px);box-shadow:none}
+.pn{width:min(340px,92vw);display:flex;flex-direction:column;gap:10px}
+.st{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.st div{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:4px;text-align:center;font-size:11px;text-transform:uppercase}
+.st b{display:block;font-size:18px;color:var(--bl)}#hp{color:var(--no)!important;font-size:15px!important;letter-spacing:1px}
+#q{background:#fff;border:3px solid var(--bl);border-radius:10px;padding:12px;box-shadow:4px 4px 0 #2b344022;transition:border-color .3s}
+#q small{font-weight:700;color:var(--or);text-transform:uppercase;font-size:11px}
+#qt{margin:4px 0 10px;font-weight:600;font-size:15px;line-height:1.35}
+.op{display:flex;gap:8px;align-items:center;width:100%;text-align:left;background:#f1f4f9;border:2px solid #c9d3e3;border-radius:8px;padding:8px;margin-bottom:6px;font-size:14px;color:var(--ink)}
+.op b{background:var(--bl);color:#fff;border-radius:6px;min-width:24px;height:24px;display:grid;place-items:center;font-size:12px}
+.op:hover:not(:disabled){border-color:var(--or)}.op.ok{background:#d8f3e3;border-color:var(--ok)}.op.no{background:#fbdcdc;border-color:var(--no)}
+#fb{min-height:20px;font-size:13px;font-weight:600}
+.row{display:flex;gap:8px;align-items:center}#n{background:#fff;border:2px solid var(--ink);border-radius:8px}
+.pad{display:flex;gap:8px;margin-top:4px}.pad button{width:52px;height:46px;border-radius:10px;border:2px solid var(--ink);background:#fff;font-size:20px;box-shadow:0 3px 0 var(--ink)}
+.pad button:active{transform:translateY(3px);box-shadow:none}
+@media(max-width:700px){.pn{order:-1}}
+</style></head><body>
+<h1>Susun Balok <span>Komputer</span></h1><p class="sub">Jawab soal untuk melepas setiap balok, lalu susun sampai penuh satu baris!</p>
+<div class="game">
+<div class="bw"><canvas id="b" width="300" height="600"></canvas>
+<div id="ov"><h2>Simulator Sistem Komputer</h2><p>Setiap balok membawa 1 soal. Jawab dulu, baru balok bisa digerakkan.<br>Jawaban salah mengurangi nyawa ♥.</p><p style="opacity:.7">⌨ ← → geser · ↑ putar · ↓ turun · Spasi jatuhkan · 1-4 / A-D jawab</p><button id="go">Mulai Main</button></div></div>
+<div class="pn">
+<div class="st"><div>Skor<b id="sc">0</b></div><div>Level<b id="lv">1</b></div><div>Baris<b id="ln">0</b></div><div>Nyawa<b id="hp">♥♥♥</b></div></div>
+<div class="row"><canvas id="n" width="100" height="70"></canvas><span style="font-size:12px">Balok berikutnya</span></div>
+<div id="q"><small>Soal untuk balok ini</small><p id="qt">Tekan “Mulai Main”.</p><div id="op"></div><div id="fb"></div></div>
+<div class="pad"><button data-a="l">◀</button><button data-a="r">⟳</button><button data-a="rt">▶</button><button data-a="d">▼</button><button data-a="h">⤓</button></div>
+</div></div>
+<script>
+const Q=[
+["Komputer adalah perangkat elektronik yang ...","menerima data, mengolahnya, menghasilkan keluaran, dan menyimpan data","hanya menampilkan gambar dan video","hanya menyimpan file secara permanen","hanya menghitung angka tanpa masukan"],
+["Jenis komputer dengan komponen terpisah (tradisional) adalah ...","PC Meja","Laptop","Tablet","Proyektor"],
+["Perangkat yang kompak, portabel, dengan komponen terintegrasi adalah ...","Laptop","PC Meja","Printer","Monitor"],
+["Tiga pilar sistem komputer adalah ...","Hardware, Software, Brainware","Input, Process, Output","CPU, RAM, SSD","Monitor, Keyboard, Mouse"],
+["Brainware adalah ...","manusia yang menggunakan dan mengelola sistem","bagian fisik yang dapat disentuh","program tak kasat mata","chip pemroses utama"],
+["Bagian fisik komputer yang dapat disentuh disebut ...","Hardware","Software","Brainware","Utility"],
+["Instruksi atau program yang tak kasat mata disebut ...","Software","Hardware","Brainware","Motherboard"],
+["Urutan siklus kerja mesin digital yang benar adalah ...","Input → Process → Output","Output → Input → Process","Process → Input → Output","Storage → Output → Input"],
+["Fungsi INPUT dalam siklus kerja komputer adalah ...","menerima instruksi","mengolah data","menampilkan hasil","menyimpan hasil permanen"],
+["Fungsi STORAGE dalam siklus kerja komputer adalah ...","menyimpan hasil secara permanen","menerima instruksi","mengolah data","menampilkan hasil"],
+["Fungsi OUTPUT dalam siklus kerja komputer adalah ...","menampilkan hasil","menerima instruksi","mengolah data","menyimpan hasil permanen"],
+["Jalan penghubung komunikasi antarkomponen komputer adalah ...","Motherboard","PSU","GPU","Kipas pendingin"],
+["Otak utama yang mengeksekusi instruksi adalah ...","CPU","RAM","PSU","SSD"],
+["GPU (kartu grafis) adalah spesialis untuk ...","mengolah gambar dan komputasi paralel","menyimpan data permanen","mengubah arus listrik","menjaga suhu komponen"],
+["PSU (Power Supply) berfungsi sebagai ...","sumber tenaga pengubah arus listrik","pengolah gambar","penyimpan file","penghubung antarkomponen"],
+["Sistem pendingin berfungsi untuk ...","menjaga suhu agar komponen tidak overheat","mengolah gambar","menyimpan data","memberi tenaga listrik"],
+["Analogi RAM adalah ...","meja kerja","lemari penyimpanan","pintu gerbang","kunci pintu"],
+["Apa yang terjadi pada data di RAM saat komputer dimatikan?","hilang","tersimpan permanen","pindah ke monitor","berubah jadi software"],
+["Fungsi utama RAM adalah ...","menampung program yang sedang berjalan","menyimpan file selamanya","mengubah listrik","menampilkan gambar"],
+["Mana yang termasuk media storage (penyimpanan permanen)?","SSD dan HDD","RAM","GPU","PSU"],
+["Perangkat yang mengubah dokumen fisik menjadi digital adalah ...","Scanner","Printer","Speaker","Proyektor"],
+["Printer menghasilkan keluaran berupa ...","dokumen fisik","suara","dokumen digital","sinyal listrik"],
+["Mana yang termasuk perangkat OUTPUT?","Speaker/Headset","Keyboard","Scanner","Touchpad"],
+["Mana yang termasuk perangkat INPUT?","Mouse/Touchpad","Monitor","Printer","Proyektor"],
+["“Hardware adalah alat musiknya; software adalah ...”","lagunya","penontonnya","gedung konsernya","tiket masuknya"],
+["Tiga lapisan software adalah ...","Sistem Operasi, Aplikasi, Utility","Hardware, Brainware, Aplikasi","CPU, RAM, Storage","Input, Process, Output"],
+["Sistem Operasi berperan sebagai pondasi yang ...","mengelola hardware","hanya mengedit gambar","hanya mencetak dokumen","menyimpan RAM"],
+["Contoh sistem operasi adalah ...","Windows, macOS, Linux, Android","Browser dan Pengolah Kata","Keyboard dan Mouse","CPU dan RAM"],
+["Browser dan pengolah kata termasuk lapisan software ...","Aplikasi","Sistem Operasi","Utility","Hardware"],
+["Pencadangan data dan pengelola file termasuk software ...","Utility (pemeliharaan)","Aplikasi","Sistem Operasi","Brainware"],
+["Saat tombol 'A' ditekan di keyboard, yang dikirim adalah ...","sinyal elektronik","piksel huruf A","file ke SSD","aliran udara"],
+["Komponen yang mengirim perintah ke monitor untuk menampilkan piksel huruf 'A' adalah ...","kartu grafis","SSD","PSU","keyboard"],
+["Huruf 'A' dipindahkan ke SSD secara permanen saat pengguna ...","menekan Save","menekan tombol A","menyalakan monitor","membuka browser"],
+["1 Byte sama dengan ... Bit","8","2","4","16"],
+["Bit adalah unit data terkecil yang hanya bernilai ...","0 atau 1","1 sampai 8","A atau B","0 sampai 9"],
+["Semua data (teks, gambar, video) diterjemahkan komputer menjadi kode ...","0 dan 1","huruf A–Z","angka 0–9","warna RGB"],
+["CPU berbeda dengan komputer karena CPU hanya ...","otak/chip pemroses tunggal","seluruh sistem komputer","tempat menyimpan file","layar tampilan"],
+["Komputer secara keseluruhan terdiri dari ...","CPU + RAM + Storage + Layar","CPU saja","RAM saja","Monitor saja"]];
+const W=10,H=20,S=30,SH={I:[[1,1,1,1]],O:[[1,1],[1,1]],T:[[0,1,0],[1,1,1]],S:[[0,1,1],[1,1,0]],Z:[[1,1,0],[0,1,1]],J:[[1,0,0],[1,1,1]],L:[[0,0,1],[1,1,1]]};
+const COL={I:'#3a8fd9',O:'#f2b134',T:'#8e5bd1',S:'#3fae6a',Z:'#e5484d',J:'#2f5fb8',L:'#e8782a'},TY=Object.keys(SH);
+const $=i=>document.getElementById(i),cx=$('b').getContext('2d'),nc=$('n').getContext('2d');
+let bd,cur,nxt,locked,score,lives,lines,level,over=1,run,ans,tot,bag=[],opts,done,last=0,acc=0;
+const rnd=a=>a[Math.random()*a.length|0],shuf=a=>a.sort(()=>Math.random()-.5);
+function cell(c,x,y,p,col,a=1){c.globalAlpha=a;c.fillStyle=col;c.fillRect(x*p,y*p,p,p);c.fillStyle='#fff5';c.fillRect(x*p,y*p,p,4);c.fillRect(x*p,y*p,4,p);c.fillStyle='#0003';c.fillRect(x*p,y*p+p-4,p,4);c.fillRect(x*p+p-4,y*p,4,p);c.globalAlpha=1}
+const hit=(m,x,y)=>m.some((r,j)=>r.some((v,i)=>v&&(x+i<0||x+i>=W||y+j>=H||(y+j>=0&&bd[y+j][x+i]))));
+function ghostY(){let y=cur.y;while(!hit(cur.m,cur.x,y+1))y++;return y}
+function draw(t){cx.fillStyle='#fffdf6';cx.fillRect(0,0,300,600);cx.strokeStyle='#3a6fb51f';cx.beginPath();for(let i=1;i<W;i++){cx.moveTo(i*S,0);cx.lineTo(i*S,600)}for(let j=1;j<H;j++){cx.moveTo(0,j*S);cx.lineTo(300,j*S)}cx.stroke();
+bd.forEach((r,y)=>r.forEach((c,x)=>c&&cell(cx,x,y,S,c)));if(!cur)return;
+const gy=locked?cur.y:ghostY();cur.m.forEach((r,j)=>r.forEach((v,i)=>{if(v){if(!locked)cell(cx,cur.x+i,gy+j,S,COL[cur.t],.22);cell(cx,cur.x+i,cur.y+j,S,COL[cur.t],locked?.6+.4*Math.sin(t/200):1)}}));
+if(locked){cx.fillStyle='#2b3440';cx.font='700 22px Rubik,sans-serif';cx.textAlign='center';cx.fillText('? jawab dulu',150,cur.y*S+78)}}
+function drawNext(){nc.clearRect(0,0,100,70);const m=SH[nxt],p=20;nc.save();nc.translate((100-m[0].length*p)/2,(70-m.length*p)/2);m.forEach((r,j)=>r.forEach((v,i)=>v&&cell(nc,i,j,p,COL[nxt])));nc.restore()}
+function hud(){$('sc').textContent=score;$('lv').textContent=level;$('ln').textContent=lines;$('hp').textContent='♥'.repeat(Math.max(lives,0))||'—'}
+function ask(){if(!bag.length)bag=shuf(Q.map((_,i)=>i));const q=Q[bag.pop()];opts=shuf(q.slice(1).map((t,i)=>({t,ok:!i})));done=0;locked=1;
+$('qt').textContent=q[0];$('fb').textContent='';$('q').style.borderColor=COL[cur.t];
+$('op').innerHTML=opts.map((o,i)=>`<button class="op" data-i="${i}"><b>${'ABCD'[i]}</b>${o.t}</button>`).join('')}
+function spawn(){const t=nxt;nxt=rnd(TY);const m=SH[t].map(r=>[...r]);cur={t,m,x:(W-m[0].length)/2|0,y:0};if(hit(m,cur.x,0))return end();ask();drawNext()}
+function answer(i){if(!locked||done||!opts[i])return;done=1;tot++;const bs=document.querySelectorAll('.op');bs.forEach((b,k)=>{b.disabled=1;if(opts[k].ok)b.classList.add('ok')});
+if(opts[i].ok){ans++;score+=100*level;$('fb').style.color='var(--ok)';$('fb').textContent='✔ Benar! +'+100*level+' poin. Balok dilepas!'}
+else{lives--;bs[i].classList.add('no');$('fb').style.color='var(--no)';$('fb').textContent='✘ Kurang tepat. Nyawa berkurang.'}
+hud();setTimeout(()=>{if(lives<=0)end();else if(run)locked=0},1100)}
+function lockPiece(){cur.m.forEach((r,j)=>r.forEach((v,i)=>v&&cur.y+j>=0&&(bd[cur.y+j][cur.x+i]=COL[cur.t])));
+const k=bd.filter(r=>r.some(c=>!c));const n=H-k.length;if(n){while(k.length<H)k.unshift(Array(W).fill(0));bd=k;lines+=n;score+=[0,100,300,500,800][n]*level;level=1+(lines/5|0)}hud();spawn()}
+const step=()=>hit(cur.m,cur.x,cur.y+1)?lockPiece():cur.y++;
+function act(a){if(!run||locked||over)return;
+if(a=='l'&&!hit(cur.m,cur.x-1,cur.y))cur.x--;if(a=='rt'&&!hit(cur.m,cur.x+1,cur.y))cur.x++;if(a=='d')step();
+if(a=='h'){cur.y=ghostY();lockPiece()}
+if(a=='r'){const m=cur.m[0].map((_,i)=>cur.m.map(r=>r[i]).reverse());for(const k of[0,-1,1,-2,2])if(!hit(m,cur.x+k,cur.y)){cur.m=m;cur.x+=k;break}}}
+function end(){over=1;run=0;locked=1;$('ov').innerHTML=`<h2>${lives>0?'Menara Penuh!':'Nyawa Habis!'}</h2><p>Skor: <b style="font-size:24px;color:#ffb36b">${score}</b><br>Soal benar: ${ans} dari ${tot}${tot?' ('+Math.round(ans/tot*100)+'%)':''}<br>Baris terhapus: ${lines}</p><button id="go">Main Lagi</button>`;$('ov').style.display='flex';$('go').onclick=start}
+function start(){bd=Array.from({length:H},()=>Array(W).fill(0));score=lines=ans=tot=0;lives=3;level=1;over=0;run=1;nxt=rnd(TY);$('ov').style.display='none';hud();spawn()}
+$('go').onclick=start;
+$('op').onclick=e=>{const b=e.target.closest('.op');b&&answer(+b.dataset.i)};
+document.querySelectorAll('.pad button').forEach(b=>b.onpointerdown=e=>{e.preventDefault();act(b.dataset.a)});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase(),m={arrowleft:'l',arrowright:'rt',arrowup:'r',arrowdown:'d',' ':'h'};
+if(m[k]){e.preventDefault();act(m[k])}const i='1234'.indexOf(k)>=0?'1234'.indexOf(k):'abcd'.indexOf(k);if(i>=0&&k.length==1)answer(i)});
+function loop(t){if(run&&!locked&&!over){acc+=t-last;if(acc>Math.max(110,720-(level-1)*65)){acc=0;step()}}last=t;if(bd)draw(t);requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
